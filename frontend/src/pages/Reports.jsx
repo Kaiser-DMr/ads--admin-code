@@ -99,9 +99,9 @@ function PlatformTab({ api, title, aColor, bColor, mockDesc }) {
         style={{ marginBottom: 16 }}
       >
         <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={8}><Card size="small" style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#999' }}>总曝光</div><div style={{ fontSize: 20, fontWeight: 600 }}>{totalImp.toLocaleString()}</div></Card></Col>
-          <Col span={8}><Card size="small" style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#999' }}>总点击</div><div style={{ fontSize: 20, fontWeight: 600 }}>{totalClick.toLocaleString()}</div></Card></Col>
-          <Col span={8}><Card size="small" style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#999' }}>总消耗</div><div style={{ fontSize: 20, fontWeight: 600 }}>¥{totalCost.toLocaleString()}</div></Card></Col>
+          <Col xs={24} sm={8}><Card size="small" style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#999' }}>总曝光</div><div style={{ fontSize: 20, fontWeight: 600 }}>{totalImp.toLocaleString()}</div></Card></Col>
+          <Col xs={24} sm={8}><Card size="small" style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#999' }}>总点击</div><div style={{ fontSize: 20, fontWeight: 600 }}>{totalClick.toLocaleString()}</div></Card></Col>
+          <Col xs={24} sm={8}><Card size="small" style={{ textAlign: 'center' }}><div style={{ fontSize: 12, color: '#999' }}>总消耗</div><div style={{ fontSize: 20, fontWeight: 600 }}>¥{totalCost.toLocaleString()}</div></Card></Col>
         </Row>
         <BarChart
           data={daily} xKey="date" aKey="impression" bKey="click"
@@ -158,7 +158,7 @@ export default function Reports() {
     { title: '转化', dataIndex: 'conversions' },
   ];
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>;
+  if (loading) return <div className="page-shell"><Card className="page-section-card" bodyStyle={{ padding: 80, textAlign: 'center' }}><Spin size="large" /></Card></div>;
 
   const totalSpend = trend.reduce((s, d) => s + d.spend, 0);
   const totalImpressions = trend.reduce((s, d) => s + d.impressions, 0);
@@ -181,9 +181,9 @@ export default function Reports() {
           </Col>
           <Col xs={24} lg={10}>
             <Row gutter={[12, 12]}>
-              <Col span={8}><Card size="small" style={{ textAlign: 'center', borderRadius: 22 }}><div style={{ fontSize: 12, color: '#999' }}>总曝光</div><div style={{ fontSize: 20, fontWeight: 600 }}>{totalImpressions.toLocaleString()}</div></Card></Col>
-              <Col span={8}><Card size="small" style={{ textAlign: 'center', borderRadius: 22 }}><div style={{ fontSize: 12, color: '#999' }}>总点击</div><div style={{ fontSize: 20, fontWeight: 600 }}>{totalClicks.toLocaleString()}</div></Card></Col>
-              <Col span={8}><Card size="small" style={{ textAlign: 'center', borderRadius: 22 }}><div style={{ fontSize: 12, color: '#999' }}>总消耗</div><div style={{ fontSize: 20, fontWeight: 600 }}>¥{totalSpend.toLocaleString()}</div></Card></Col>
+              <Col xs={24} sm={8}><Card size="small" style={{ textAlign: 'center', borderRadius: 22 }}><div style={{ fontSize: 12, color: '#999' }}>总曝光</div><div style={{ fontSize: 20, fontWeight: 600 }}>{totalImpressions.toLocaleString()}</div></Card></Col>
+              <Col xs={24} sm={8}><Card size="small" style={{ textAlign: 'center', borderRadius: 22 }}><div style={{ fontSize: 12, color: '#999' }}>总点击</div><div style={{ fontSize: 20, fontWeight: 600 }}>{totalClicks.toLocaleString()}</div></Card></Col>
+              <Col xs={24} sm={8}><Card size="small" style={{ textAlign: 'center', borderRadius: 22 }}><div style={{ fontSize: 12, color: '#999' }}>总消耗</div><div style={{ fontSize: 20, fontWeight: 600 }}>¥{totalSpend.toLocaleString()}</div></Card></Col>
             </Row>
           </Col>
         </Row>
@@ -223,7 +223,7 @@ export default function Reports() {
           label: '平台维度',
           children: (
             <Card className="page-section-card">
-              <Table dataSource={platforms} columns={platformColumns} rowKey="platform" size="small" pagination={false} />
+              <Table dataSource={platforms} columns={platformColumns} rowKey="platform" size="small" scroll={{ x: 640 }} pagination={false} />
             </Card>
           ),
         },

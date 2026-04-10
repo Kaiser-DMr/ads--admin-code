@@ -102,32 +102,34 @@ export default function MainLayout() {
       </Sider>
 
       <Layout className="console-main">
-        <Header className="console-header">
-          <div>
-            <Typography.Text type="secondary" className="console-kicker">
-              Claude Ads Console
-            </Typography.Text>
-            <Typography.Title level={2} className="console-title">
-              {currentTitle}
-            </Typography.Title>
-            <Typography.Text type="secondary" className="console-description">
-              {currentDesc}
-            </Typography.Text>
-          </div>
-          <Dropdown menu={userMenu} placement="bottomRight">
-            <div className="console-header-user">
-              <Avatar src={claudeIcon} style={{ background: '#2f6bff' }} />
-              <div>
-                <Typography.Text strong style={{ display: 'block', lineHeight: 1.2 }}>{user?.username}</Typography.Text>
-                <Typography.Text type="secondary" style={{ fontSize: 12 }}>{roleLabel[user?.role]}</Typography.Text>
-              </div>
+        <div className="console-main-scroll">
+          <Header className="console-header">
+            <div>
+              <Typography.Text type="secondary" className="console-kicker">
+                Claude Ads Console
+              </Typography.Text>
+              <Typography.Title level={2} className="console-title">
+                {currentTitle}
+              </Typography.Title>
+              <Typography.Text type="secondary" className="console-description">
+                {currentDesc}
+              </Typography.Text>
             </div>
-          </Dropdown>
-        </Header>
+            <Dropdown menu={userMenu} placement="bottomRight">
+              <div className="console-header-user">
+                <Avatar src={claudeIcon} style={{ background: '#2f6bff' }} />
+                <div>
+                  <Typography.Text strong style={{ display: 'block', lineHeight: 1.2 }}>{user?.username}</Typography.Text>
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>{roleLabel[user?.role]}</Typography.Text>
+                </div>
+              </div>
+            </Dropdown>
+          </Header>
 
-        <Content className="console-content">
-          <Outlet />
-        </Content>
+          <Content className="console-content">
+            <Outlet />
+          </Content>
+        </div>
       </Layout>
     </Layout>
   );

@@ -7,7 +7,7 @@
 }
 
 html, body, #root {
-  min-height: 100%;
+  height: 100%;
 }
 
 body {
@@ -16,6 +16,7 @@ body {
     radial-gradient(circle at top left, rgba(47, 107, 255, 0.08), transparent 28%),
     linear-gradient(180deg, #fbfcfe 0%, #f5f7fb 100%);
   color: #111827;
+  overflow: hidden;
 }
 
 img {
@@ -23,15 +24,14 @@ img {
 }
 
 .console-layout {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: transparent;
 }
 
 .console-sider {
-  position: sticky !important;
-  top: 0;
+  position: relative !important;
   height: 100vh;
-  align-self: flex-start;
   overflow: hidden;
   background: rgba(245, 247, 251, 0.92) !important;
   padding: 20px 0 20px 20px;
@@ -67,6 +67,8 @@ img {
 
 .console-sider-toggle {
   align-self: flex-end;
+  width: 40px;
+  height: 40px;
 }
 
 .console-sider-top.is-collapsed .console-sider-toggle {
@@ -110,7 +112,7 @@ img {
 
 .console-menu-wrap {
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .console-menu {
@@ -154,8 +156,17 @@ img {
 }
 
 .console-main {
+  min-width: 0;
+  height: 100vh;
   background: transparent;
   padding: 20px 24px 24px 0;
+}
+
+.console-main-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
 }
 
 .console-header {
@@ -207,6 +218,7 @@ img {
 .console-content {
   min-height: 280px;
   padding-inline: 24px;
+  padding-bottom: 8px;
 }
 
 .page-shell {
@@ -215,11 +227,22 @@ img {
   gap: 18px;
 }
 
-.page-header,
-.page-toolbar {
+.dashboard-shell {
+  gap: 20px;
+}
+
+.page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -429,21 +452,34 @@ img {
     padding-right: 16px;
   }
 
-  .console-header {
-    flex-wrap: wrap;
-  }
-
   .console-content {
     padding-inline: 20px;
   }
+
+  .console-header {
+    padding: 18px 20px;
+  }
 }
 
-@media (max-width: 900px) {
-  .console-sider {
-    padding-left: 12px;
+@media (max-width: 768px) {
+  .console-main {
+    padding: 16px 16px 20px 0;
   }
 
-  .console-sider-shell {
+  .console-content {
+    padding-inline: 16px;
+  }
+
+  .console-header {
+    padding: 16px;
     border-radius: 24px;
+  }
+
+  .page-toolbar {
+    justify-content: stretch;
+  }
+
+  .page-toolbar > * {
+    width: 100%;
   }
 }

@@ -13,7 +13,7 @@ const roleLabel = { admin: '管理员', operator: '运营', viewer: '查看者' 
 export default function Users() {
   const { user: currentUser } = useAuth();
   if (currentUser?.role !== 'admin') {
-    return <div style={{ padding: 40, textAlign: 'center' }}><Typography.Text type="secondary">无权限访问此页面</Typography.Text></div>;
+    return <div className="page-shell"><Card className="page-section-card" bodyStyle={{ padding: 40, textAlign: 'center' }}><Typography.Text type="secondary">无权限访问此页面</Typography.Text></Card></div>;
   }
 
   const [data, setData] = useState([]);
@@ -96,7 +96,7 @@ export default function Users() {
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建用户</Button>
       </div>
       <Card className="page-section-card">
-        <Table dataSource={data} columns={columns} rowKey="id" loading={loading} pagination={false} />
+        <Table dataSource={data} columns={columns} rowKey="id" loading={loading} pagination={false} scroll={{ x: 760 }} />
       </Card>
 
       <Modal

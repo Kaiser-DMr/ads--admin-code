@@ -73,10 +73,10 @@ export default function Dashboard() {
     },
   ];
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>;
+  if (loading) return <div className="page-shell"><Card className="page-section-card" bodyStyle={{ padding: 80, textAlign: 'center' }}><Spin size="large" /></Card></div>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="page-shell dashboard-shell">
       <Card bodyStyle={{ padding: 32 }} style={{ borderRadius: 32, overflow: 'hidden', background: 'linear-gradient(135deg, #fff 0%, #f7faff 52%, #eef4ff 100%)' }}>
         <Row gutter={[24, 24]} align="middle">
           <Col xs={24} lg={14}>
