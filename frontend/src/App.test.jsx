@@ -50,12 +50,6 @@ beforeAll(() => {
 beforeEach(() => {
   localStorage.clear();
   vi.resetModules();
-  vi.unmock('./pages/Dashboard');
-  vi.unmock('./pages/Campaigns');
-  vi.unmock('./pages/Creatives');
-  vi.unmock('./pages/Reports');
-  vi.unmock('./pages/Users');
-  vi.unmock('./pages/PlatformConnections');
 });
 
 afterEach(() => {
@@ -67,10 +61,11 @@ describe('App route loading', () => {
     window.history.pushState({}, '', '/reports');
     const { default: App } = await import('./App');
     render(<App />);
-    expect(await screen.findByText('欢迎回来')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '欢迎回来' })).toBeInTheDocument();
   });
 
   it('shows the shared fallback before a lazy route resolves', async () => {
+    // Expected to fail until Task 2 switches route modules to React.lazy + Suspense.
     localStorage.setItem('token', 'test-token');
     localStorage.setItem('user', JSON.stringify({ username: 'admin', role: 'admin' }));
     window.history.pushState({}, '', '/reports');
