@@ -110,12 +110,10 @@ export default function Creatives() {
 
   return (
     <div className="page-shell">
-      {canEdit && (
-        <div className="page-toolbar">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setCreateOpen(true); }}>上传素材</Button>
-        </div>
-      )}
-      <Card className="page-section-card">
+      <Card
+        className="page-section-card"
+        extra={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={() => { form.resetFields(); setCreateOpen(true); }}>上传素材</Button> : null}
+      >
         <Table
           dataSource={data}
           columns={columns}

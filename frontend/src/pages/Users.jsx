@@ -92,10 +92,10 @@ export default function Users() {
 
   return (
     <div className="page-shell">
-      <div className="page-toolbar">
-        <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建用户</Button>
-      </div>
-      <Card className="page-section-card">
+      <Card
+        className="page-section-card"
+        extra={<Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建用户</Button>}
+      >
         <Table dataSource={data} columns={columns} rowKey="id" loading={loading} pagination={false} scroll={{ x: 760 }} />
       </Card>
 

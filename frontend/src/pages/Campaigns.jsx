@@ -127,8 +127,10 @@ export default function Campaigns() {
 
   return (
     <div className="page-shell">
-      {canEdit && <div className="page-toolbar"><Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建活动</Button></div>}
-      <Card className="page-section-card">
+      <Card
+        className="page-section-card"
+        extra={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建活动</Button> : null}
+      >
         <Table
           dataSource={data}
           columns={columns}
