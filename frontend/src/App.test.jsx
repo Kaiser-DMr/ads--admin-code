@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
 function createLocalStorageMock() {
@@ -20,14 +20,6 @@ function createLocalStorageMock() {
       store[key] = String(value);
     },
   };
-}
-
-function deferredModule(label) {
-  let resolve;
-  const promise = new Promise((nextResolve) => {
-    resolve = () => nextResolve({ default: () => <div>{label}</div> });
-  });
-  return { promise, resolve };
 }
 
 beforeAll(() => {
@@ -66,6 +58,10 @@ beforeEach(() => {
   vi.unmock('./pages/PlatformConnections');
 });
 
+afterEach(() => {
+  cleanup();
+});
+
 describe('App route loading', () => {
   it('redirects guests to the login page', async () => {
     window.history.pushState({}, '', '/reports');
@@ -79,8 +75,7 @@ describe('App route loading', () => {
     localStorage.setItem('user', JSON.stringify({ username: 'admin', role: 'admin' }));
     window.history.pushState({}, '', '/reports');
 
-    const reportsModule = deferredModule('reports-page-loaded');
-    vi.doMock('./pages/Reports', () => reportsModule.promise);
+    vi.doMock('./pages/Reports', () => Promise.resolve({ default: () => <div>reports-page-loaded</div> }));
     vi.doMock('./pages/Dashboard', () => Promise.resolve({ default: () => <div>dashboard-page</div> }));
     vi.doMock('./pages/Campaigns', () => Promise.resolve({ default: () => <div>campaigns-page</div> }));
     vi.doMock('./pages/Creatives', () => Promise.resolve({ default: () => <div>creatives-page</div> }));
@@ -91,8 +86,6 @@ describe('App route loading', () => {
     render(<App />);
 
     expect(screen.getByText('正在加载页面')).toBeInTheDocument();
-
-    reportsModule.resolve();
 
     expect(await screen.findByText('reports-page-loaded')).toBeInTheDocument();
   });
