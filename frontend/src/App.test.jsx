@@ -94,7 +94,7 @@ describe('App route loading', () => {
     const { default: App } = await import('./App');
     render(<App />);
 
-    expect(screen.getByText('正在加载页面')).toBeInTheDocument();
+    expect(await screen.findByText('正在加载页面')).toBeInTheDocument();
 
     reportsModule.resolve();
 

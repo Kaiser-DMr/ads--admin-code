@@ -6,9 +6,11 @@ export default function PageRouteFallback() {
     <div className="page-shell page-route-fallback-shell">
       <Card
         className="page-section-card page-route-fallback-card"
-        bodyStyle={{ padding: 40, textAlign: 'center' }}
+        styles={{ body: { padding: 40, textAlign: 'center' } }}
       >
-        <Spin size="large" />
+        <div className="page-route-fallback-status" role="status" aria-live="polite">
+          <Spin size="large" />
+        </div>
         <Typography.Title level={4} className="page-route-fallback-title">
           正在加载页面
         </Typography.Title>
