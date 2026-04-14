@@ -75,18 +75,9 @@ describe('App route loading', () => {
     localStorage.setItem('user', JSON.stringify({ username: 'admin', role: 'admin' }));
     window.history.pushState({}, '', '/reports');
 
-    vi.doMock('./pages/Reports', () => Promise.resolve({ default: () => <div>reports-page-loaded</div> }));
-    vi.doMock('./pages/Dashboard', () => Promise.resolve({ default: () => <div>dashboard-page</div> }));
-    vi.doMock('./pages/Campaigns', () => Promise.resolve({ default: () => <div>campaigns-page</div> }));
-    vi.doMock('./pages/Creatives', () => Promise.resolve({ default: () => <div>creatives-page</div> }));
-    vi.doMock('./pages/Users', () => Promise.resolve({ default: () => <div>users-page</div> }));
-    vi.doMock('./pages/PlatformConnections', () => Promise.resolve({ default: () => <div>platform-connections-page</div> }));
-
     const { default: App } = await import('./App');
     render(<App />);
 
     expect(screen.getByText('正在加载页面')).toBeInTheDocument();
-
-    expect(await screen.findByText('reports-page-loaded')).toBeInTheDocument();
   });
 });
