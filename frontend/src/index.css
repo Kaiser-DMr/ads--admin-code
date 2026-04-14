@@ -256,6 +256,19 @@ img {
   gap: 18px;
 }
 
+.page-route-fallback-shell {
+  min-height: 240px;
+}
+
+.page-route-fallback-card {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.page-route-fallback-title {
+  margin: 18px 0 8px !important;
+}
+
 .dashboard-shell {
   gap: 20px;
 }
