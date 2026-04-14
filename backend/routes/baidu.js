@@ -1,15 +1,14 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
+const { resolveRuntimeConnection } = require('../lib/platformConnections');
 
 // ─── 配置区 ──────────────────────────────────────────────
 // 当你拿到百度营销 API 凭证后，填入下方并将 MOCK_MODE 改为 false
 const MOCK_MODE = true;
-const BAIDU_CONFIG = {
-  username: process.env.BAIDU_USERNAME || '',
-  password: process.env.BAIDU_PASSWORD || '',
-  token: process.env.BAIDU_DEV_TOKEN || '',   // 开发者 Token
-  apiBase: 'https://api.baidu.com/json/sms/service',
-};
+
+function getBaiduConfig() {
+  return resolveRuntimeConnection('baidu').config;
+}
 // ─────────────────────────────────────────────────────────
 
 router.use(authenticate);
@@ -40,6 +39,7 @@ function genDailyMock(days = 30) {
 
 // GET /api/baidu/campaigns — 计划列表
 router.get('/campaigns', async (req, res) => {
+  const baiduConfig = getBaiduConfig();
   if (MOCK_MODE) return res.json({ mock: true, list: mockCampaigns });
 
   // 真实调用示例（百度推广 API v3）
@@ -54,6 +54,7 @@ router.get('/campaigns', async (req, res) => {
 // GET /api/baidu/report/daily?days=30 — 账户级日报
 router.get('/report/daily', async (req, res) => {
   const days = parseInt(req.query.days) || 30;
+  const baiduConfig = getBaiduConfig();
   if (MOCK_MODE) return res.json({ mock: true, list: genDailyMock(days) });
 
   // 真实调用示例（百度推广报告 API）
@@ -69,6 +70,7 @@ router.get('/report/daily', async (req, res) => {
 
 // GET /api/baidu/report/campaign — 计划维度汇总
 router.get('/report/campaign', async (req, res) => {
+  const baiduConfig = getBaiduConfig();
   if (MOCK_MODE) {
     const list = mockCampaigns.map(c => ({
       ...c,

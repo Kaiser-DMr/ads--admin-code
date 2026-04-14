@@ -8,6 +8,7 @@ import Campaigns from './pages/Campaigns';
 import Creatives from './pages/Creatives';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
+import PlatformConnections from './pages/PlatformConnections';
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="creatives" element={<Creatives />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="platform-connections" element={<PlatformConnections />} />
             <Route path="users" element={<Users />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

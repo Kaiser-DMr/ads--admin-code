@@ -81,6 +81,20 @@ db.exec(`
     conversions INTEGER DEFAULT 0,
     FOREIGN KEY (campaign_id) REFERENCES campaigns(id)
   );
+
+  CREATE TABLE IF NOT EXISTS platform_connections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    platform TEXT NOT NULL UNIQUE,
+    auth_type TEXT NOT NULL,
+    config_json TEXT NOT NULL DEFAULT '{}',
+    status TEXT NOT NULL DEFAULT 'unconfigured',
+    last_verified_at DATETIME,
+    last_error TEXT,
+    updated_by INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (updated_by) REFERENCES users(id)
+  );
 `);
 
 [

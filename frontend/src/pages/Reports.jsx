@@ -166,16 +166,16 @@ export default function Reports() {
 
   return (
     <div className="page-shell">
-      <Card className="page-section-card" bodyStyle={{ padding: 28, background: 'linear-gradient(135deg, #fff 0%, #f7faff 58%, #eef4ff 100%)' }}>
+      <Card className="page-section-card reports-hero-card" bodyStyle={{ padding: 28, background: 'linear-gradient(135deg, #fff 0%, #f7faff 58%, #eef4ff 100%)' }}>
         <Row gutter={[24, 24]} align="middle">
           <Col xs={24} lg={14}>
-            <Typography.Text style={{ color: '#2f6bff', fontSize: 12, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+            <Typography.Text className="reports-hero-kicker" style={{ color: '#2f6bff', fontSize: 12, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
               Reporting cockpit
             </Typography.Text>
-            <Typography.Title style={{ margin: '14px 0 10px', fontSize: 40, lineHeight: 1.08, letterSpacing: '-0.04em', maxWidth: 620 }}>
+            <Typography.Title className="reports-hero-title" style={{ margin: '14px 0 10px', fontSize: 40, lineHeight: 1.08, letterSpacing: '-0.04em', maxWidth: 620 }}>
               A clearer control panel for cross-platform ad performance.
             </Typography.Title>
-            <Typography.Paragraph style={{ marginBottom: 0, color: '#6b7280', fontSize: 15, lineHeight: 1.8, maxWidth: 620 }}>
+            <Typography.Paragraph className="reports-hero-description" style={{ marginBottom: 0, color: '#6b7280', fontSize: 15, lineHeight: 1.8, maxWidth: 620 }}>
               在一个更统一的中控视图里，快速判断全平台曝光、点击、成本与平台结构变化。
             </Typography.Paragraph>
           </Col>
@@ -233,7 +233,7 @@ export default function Reports() {
           children: <PlatformTab
             api={baiduApi} title="百度营销"
             aColor="#f5222d" bColor="#fa8c16"
-            mockDesc="在 backend/routes/baidu.js 填入百度推广 API 凭证并将 MOCK_MODE 改为 false。"
+            mockDesc="请前往“平台授权”页面配置该平台凭证；配置完成后这里会自动读取后台已保存的授权信息。"
           />,
         },
         {
@@ -242,7 +242,7 @@ export default function Reports() {
           children: <PlatformTab
             api={kuaishouApi} title="快手磁力金牛"
             aColor="#ff6b00" bColor="#ffb300"
-            mockDesc="在 backend/routes/kuaishou.js 填入快手磁力金牛 API 凭证（appId / appSecret / accessToken）并将 MOCK_MODE 改为 false。"
+            mockDesc="请前往“平台授权”页面配置该平台凭证；配置完成后这里会自动读取后台已保存的授权信息。"
           />,
         },
         {
@@ -251,7 +251,7 @@ export default function Reports() {
           children: <PlatformTab
             api={jliangApi} title="巨量引擎"
             aColor="#1890ff" bColor="#722ed1"
-            mockDesc="在 backend/routes/jliang.js 填入巨量引擎 Marketing API 凭证（appId / accessToken / advertiserId）并将 MOCK_MODE 改为 false。"
+            mockDesc="请前往“平台授权”页面配置该平台凭证；配置完成后这里会自动读取后台已保存的授权信息。"
           />,
         },
         {
@@ -260,7 +260,7 @@ export default function Reports() {
           children: <PlatformTab
             api={googleApi} title="Google Ads"
             aColor="#4285F4" bColor="#34A853"
-            mockDesc="在 backend/routes/google.js 填入 Google Ads API 凭证（clientId / clientSecret / developerToken / customerId）并将 MOCK_MODE 改为 false。"
+            mockDesc="请前往“平台授权”页面配置该平台凭证；配置完成后这里会自动读取后台已保存的授权信息。"
           />,
         },
       ]} />

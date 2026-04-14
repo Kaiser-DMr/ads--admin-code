@@ -15,6 +15,7 @@ app.use('/api/baidu', require('./routes/baidu'));
 app.use('/api/kuaishou', require('./routes/kuaishou'));
 app.use('/api/jliang', require('./routes/jliang'));
 app.use('/api/google', require('./routes/google'));
+app.use('/api/platform-connections', require('./routes/platformConnections'));
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 

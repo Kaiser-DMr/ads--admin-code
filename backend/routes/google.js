@@ -1,14 +1,12 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
+const { resolveRuntimeConnection } = require('../lib/platformConnections');
 
 const MOCK_MODE = true;
-const GOOGLE_CONFIG = {
-  clientId: process.env.GOOGLE_ADS_CLIENT_ID || '',
-  clientSecret: process.env.GOOGLE_ADS_CLIENT_SECRET || '',
-  developerToken: process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '',
-  customerId: process.env.GOOGLE_ADS_CUSTOMER_ID || '',
-  apiBase: 'https://googleads.googleapis.com/v18',
-};
+
+function getGoogleConfig() {
+  return resolveRuntimeConnection('google').config;
+}
 
 router.use(authenticate);
 
@@ -36,6 +34,7 @@ function genDailyMock(days = 30) {
 }
 
 router.get('/campaigns', async (req, res) => {
+  const googleConfig = getGoogleConfig();
   if (MOCK_MODE) return res.json({ mock: true, list: mockCampaigns });
   // 真实调用示例（Google Ads API）
   // 可基于 customerId + GAQL 查询 campaign 资源。
@@ -43,11 +42,13 @@ router.get('/campaigns', async (req, res) => {
 
 router.get('/report/daily', async (req, res) => {
   const days = parseInt(req.query.days) || 30;
+  const googleConfig = getGoogleConfig();
   if (MOCK_MODE) return res.json({ mock: true, list: genDailyMock(days) });
   // 真实调用示例：按 segments.date 聚合 impressions / clicks / cost_micros / conversions。
 });
 
 router.get('/report/campaign', async (req, res) => {
+  const googleConfig = getGoogleConfig();
   if (MOCK_MODE) {
     const list = mockCampaigns.map(c => ({
       ...c,

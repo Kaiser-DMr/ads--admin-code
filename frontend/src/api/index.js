@@ -69,3 +69,10 @@ export const userApi = {
   update: (id, data) => http.put(`/users/${id}`, data),
   remove: (id) => http.delete(`/users/${id}`),
 };
+
+export const platformConnectionApi = {
+  list: () => http.get('/platform-connections'),
+  get: (platform) => http.get(`/platform-connections/${platform}`),
+  update: (platform, data) => http.put(`/platform-connections/${platform}`, data),
+  test: (platform) => http.post(`/platform-connections/${platform}/test`),
+};

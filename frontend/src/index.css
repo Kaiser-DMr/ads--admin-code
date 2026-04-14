@@ -401,6 +401,30 @@ img {
   color: #6b7280;
 }
 
+.platform-connections-shell {
+  gap: 20px;
+}
+
+.platform-connections-card .ant-card-body {
+  padding: 20px;
+}
+
+.platform-connections-summary {
+  margin-bottom: 16px;
+}
+
+.platform-connection-name {
+  font-weight: 600;
+}
+
+.platform-connection-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 @media (max-width: 980px) {
   .campaign-filters-grid {
     grid-template-columns: 1fr;
@@ -420,6 +444,10 @@ img {
     flex-direction: column;
     align-items: flex-start;
     width: 100%;
+  }
+
+  .platform-connections-card .ant-card-body {
+    padding: 16px;
   }
 }
 

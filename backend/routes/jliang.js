@@ -1,15 +1,13 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
+const { resolveRuntimeConnection } = require('../lib/platformConnections');
 
 // ─── 配置区 ──────────────────────────────────────────────
 const MOCK_MODE = true;
-const JLIANG_CONFIG = {
-  appId: process.env.JLIANG_APP_ID || '',
-  appSecret: process.env.JLIANG_APP_SECRET || '',
-  accessToken: process.env.JLIANG_ACCESS_TOKEN || '',
-  advertiserId: process.env.JLIANG_ADVERTISER_ID || '',
-  apiBase: 'https://ad.oceanengine.com/open_api/2',
-};
+
+function getJliangConfig() {
+  return resolveRuntimeConnection('jliang').config;
+}
 // ─────────────────────────────────────────────────────────
 
 router.use(authenticate);
@@ -39,6 +37,7 @@ function genDailyMock(days = 30) {
 }
 
 router.get('/campaigns', async (req, res) => {
+  const jliangConfig = getJliangConfig();
   if (MOCK_MODE) return res.json({ mock: true, list: mockCampaigns });
   // 真实调用示例（巨量引擎 Marketing API）
   // const axios = require('axios');
@@ -51,11 +50,13 @@ router.get('/campaigns', async (req, res) => {
 
 router.get('/report/daily', async (req, res) => {
   const days = parseInt(req.query.days) || 30;
+  const jliangConfig = getJliangConfig();
   if (MOCK_MODE) return res.json({ mock: true, list: genDailyMock(days) });
   // 真实调用：巨量 /report/advertiser/get/，time_granularity: STAT_TIME_GRANULARITY_DAILY
 });
 
 router.get('/report/campaign', async (req, res) => {
+  const jliangConfig = getJliangConfig();
   if (MOCK_MODE) {
     const list = mockCampaigns.map(c => ({
       ...c,

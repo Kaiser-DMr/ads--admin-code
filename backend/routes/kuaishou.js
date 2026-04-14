@@ -1,14 +1,13 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
+const { resolveRuntimeConnection } = require('../lib/platformConnections');
 
 // ─── 配置区 ──────────────────────────────────────────────
 const MOCK_MODE = true;
-const KUAISHOU_CONFIG = {
-  appId: process.env.KUAISHOU_APP_ID || '',
-  appSecret: process.env.KUAISHOU_APP_SECRET || '',
-  accessToken: process.env.KUAISHOU_ACCESS_TOKEN || '',
-  apiBase: 'https://ad.e.kuaishou.com/rest/openapi/v1',
-};
+
+function getKuaishouConfig() {
+  return resolveRuntimeConnection('kuaishou').config;
+}
 // ─────────────────────────────────────────────────────────
 
 router.use(authenticate);
@@ -37,6 +36,7 @@ function genDailyMock(days = 30) {
 }
 
 router.get('/campaigns', async (req, res) => {
+  const kuaishouConfig = getKuaishouConfig();
   if (MOCK_MODE) return res.json({ mock: true, list: mockCampaigns });
   // 真实调用示例（快手磁力金牛 API）
   // const axios = require('axios');
@@ -49,11 +49,13 @@ router.get('/campaigns', async (req, res) => {
 
 router.get('/report/daily', async (req, res) => {
   const days = parseInt(req.query.days) || 30;
+  const kuaishouConfig = getKuaishouConfig();
   if (MOCK_MODE) return res.json({ mock: true, list: genDailyMock(days) });
   // 真实调用：快手 /report/account/query，time_granularity: DAILY
 });
 
 router.get('/report/campaign', async (req, res) => {
+  const kuaishouConfig = getKuaishouConfig();
   if (MOCK_MODE) {
     const list = mockCampaigns.map(c => ({
       ...c,
