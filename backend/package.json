@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "PORT=${PORT:-3002} node --experimental-sqlite server.js",
-    "dev": "PORT=${PORT:-3002} node --experimental-sqlite --watch server.js"
+    "dev": "PORT=${PORT:-3002} node --experimental-sqlite --watch server.js",
+    "test": "AD_ADMIN_DB_PATH=:memory: AD_ADMIN_SEED=false node --experimental-sqlite --test tests/*.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -13,6 +14,7 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3"
+    "nodemon": "^3.0.3",
+    "supertest": "^7.0.0"
   }
 }

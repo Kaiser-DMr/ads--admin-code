@@ -12,6 +12,18 @@ export const campaignApi = {
   update: (id, data) => http.put(`/campaigns/${id}`, data),
   remove: (id) => http.delete(`/campaigns/${id}`),
   summary: () => http.get('/campaigns/meta/summary'),
+  submitReview: (id) => http.post(`/campaigns/${id}/submit-review`),
+  withdrawReview: (id) => http.post(`/campaigns/${id}/withdraw-review`),
+  approve: (id) => http.post(`/campaigns/${id}/approve`),
+  reject: (id, data) => http.post(`/campaigns/${id}/reject`, data),
+  activate: (id) => http.post(`/campaigns/${id}/activate`),
+  pause: (id, data) => http.post(`/campaigns/${id}/pause`, data),
+  complete: (id) => http.post(`/campaigns/${id}/complete`),
+  terminate: (id, data) => http.post(`/campaigns/${id}/terminate`, data),
+  batchSubmitReview: (ids) => http.post('/campaigns/batch/submit-review', { ids }),
+  batchActivate: (ids) => http.post('/campaigns/batch/activate', { ids }),
+  batchPause: (ids, reason) => http.post('/campaigns/batch/pause', { ids, reason }),
+  batchTerminate: (ids, reason) => http.post('/campaigns/batch/terminate', { ids, reason }),
 };
 
 export const creativeApi = {

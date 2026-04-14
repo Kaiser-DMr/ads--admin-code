@@ -18,5 +18,9 @@ app.use('/api/google', require('./routes/google'));
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
-const PORT = Number(process.env.PORT) || 3001;
-app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
+if (require.main === module) {
+  const PORT = Number(process.env.PORT) || 3002;
+  app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
+}
+
+module.exports = { app };

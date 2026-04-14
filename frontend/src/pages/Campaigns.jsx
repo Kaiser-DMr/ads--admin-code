@@ -1,185 +1,473 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Table, Button, Tag, Space, Modal, Form, Input, InputNumber,
-  Select, DatePicker, Typography, message, Popconfirm, Card
-} from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, PauseOutlined, PlayCircleOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
+import { Button, Card, Dropdown, Form, Input, Modal, Space, Table, Tag, Typography, message } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { campaignApi } from '../api';
 import { useAuth } from '../utils/auth';
+import CampaignFilters from './campaigns/CampaignFilters';
+import CampaignBatchBar from './campaigns/CampaignBatchBar';
+import CampaignFormDrawer from './campaigns/CampaignFormDrawer';
+import CampaignStatusTag from './campaigns/CampaignStatusTag';
+import { CAMPAIGN_ACTION_LABEL, PLATFORM_OPTIONS } from './campaigns/constants';
+import {
+  formatCurrency,
+  formatDateRange,
+  getBudgetUsageRate,
+  getRemainingBudget,
+  getRowActions,
+  mapCampaignFormValues
+} from './campaigns/utils';
 
-const { RangePicker } = DatePicker;
+const defaultFilters = {
+  search: '',
+  status: '',
+  platform: '',
+  requires_review: '',
+  budget_health: '',
+  date_from: '',
+  date_to: ''
+};
 
-const statusColor = { active: 'green', paused: 'orange', draft: 'default', completed: 'blue' };
-const statusLabel = { active: '投放中', paused: '已暂停', draft: '草稿', completed: '已完成' };
-const platformLabel = { iOS: 'iOS', Android: 'Android', Web: 'Web', all: '全平台' };
+const reasonTitles = {
+  reject: '驳回原因',
+  pause: '暂停原因',
+  terminate: '终止原因',
+  batch_pause: '批量暂停原因',
+  batch_terminate: '批量终止原因'
+};
+
+const defaultFormValues = {
+  name: '',
+  platform: 'all',
+  total_budget: null,
+  daily_budget: null,
+  requires_review: false,
+  auto_activate: true,
+  dateRange: null
+};
+
+export function normalizeRequiresReview(value) {
+  if (value === true || value === 1 || value === '1') return true;
+  if (value === false || value === 0 || value === '0' || value == null) return false;
+  return Boolean(value);
+}
+
+function buildQuery(params, filters) {
+  const query = {
+    page: params.page,
+    pageSize: params.pageSize
+  };
+  if (filters.search) query.search = filters.search.trim();
+  if (filters.status) query.status = filters.status;
+  if (filters.platform) query.platform = filters.platform;
+  if (filters.requires_review !== '') query.requires_review = filters.requires_review;
+  if (filters.budget_health) query.budget_health = filters.budget_health;
+  if (filters.date_from) query.date_from = filters.date_from;
+  if (filters.date_to) query.date_to = filters.date_to;
+  return query;
+}
+
+function formatPlatform(value) {
+  return PLATFORM_OPTIONS.find((option) => option.value === value)?.label || value || '-';
+}
 
 export default function Campaigns() {
   const { user } = useAuth();
   const canEdit = ['admin', 'operator'].includes(user?.role);
-  const canDelete = user?.role === 'admin';
 
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState(defaultFilters);
   const [params, setParams] = useState({ page: 1, pageSize: 10 });
-  const [modalOpen, setModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerLoading, setDrawerLoading] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [reasonModal, setReasonModal] = useState({ open: false, action: '', ids: [], row: null });
   const [form] = Form.useForm();
+  const [reasonForm] = Form.useForm();
+  const clearSelection = () => {
+    setSelectedRowKeys([]);
+    setSelectedRows([]);
+  };
 
-  const fetchData = async (p = params) => {
+  const fetchData = async (nextParams = params, nextFilters = filters) => {
     setLoading(true);
     try {
-      const { data: res } = await campaignApi.list(p);
+      const { data: res } = await campaignApi.list(buildQuery(nextParams, nextFilters));
       setData(res.list);
       setTotal(res.total);
+    } catch (err) {
+      message.error(err.response?.data?.message || '获取活动列表失败');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const openCreate = () => { setEditing(null); form.resetFields(); setModalOpen(true); };
-  const openEdit = (row) => {
-    setEditing(row);
-    form.setFieldsValue({
-      ...row,
-      dateRange: row.start_date && row.end_date ? [dayjs(row.start_date), dayjs(row.end_date)] : null,
-    });
-    setModalOpen(true);
+  const openCreate = () => {
+    setEditing(null);
+    form.setFieldsValue(defaultFormValues);
+    setDrawerOpen(true);
   };
 
-  const handleSubmit = async () => {
-    const values = await form.validateFields();
+  const openEdit = (row) => {
+    const mapped = mapCampaignFormValues(row);
+    const normalizedRequiresReview = normalizeRequiresReview(row?.requires_review);
+    setEditing(row);
+    form.setFieldsValue({
+      ...defaultFormValues,
+      ...mapped,
+      requires_review: normalizedRequiresReview,
+      total_budget: mapped.total_budget ?? mapped.budget ?? null,
+      daily_budget: mapped.daily_budget ?? null
+    });
+    setDrawerOpen(true);
+  };
+
+  const openDuplicate = (row) => {
+    const mapped = mapCampaignFormValues(row);
+    const normalizedRequiresReview = normalizeRequiresReview(row?.requires_review);
+    setEditing(null);
+    form.setFieldsValue({
+      ...defaultFormValues,
+      ...mapped,
+      requires_review: normalizedRequiresReview,
+      name: `${row.name} - 副本`,
+      total_budget: mapped.total_budget ?? mapped.budget ?? null,
+      daily_budget: mapped.daily_budget ?? null
+    });
+    setDrawerOpen(true);
+  };
+
+  const handleDrawerSubmit = async (values) => {
     const { dateRange, ...rest } = values;
     const payload = {
       ...rest,
-      start_date: dateRange?.[0]?.format('YYYY-MM-DD'),
-      end_date: dateRange?.[1]?.format('YYYY-MM-DD'),
+      start_date: dateRange?.[0]?.format('YYYY-MM-DD') || null,
+      end_date: dateRange?.[1]?.format('YYYY-MM-DD') || null
     };
+    setDrawerLoading(true);
     try {
       if (editing) {
         await campaignApi.update(editing.id, payload);
-        message.success('更新成功');
+        message.success('活动已更新');
       } else {
         await campaignApi.create(payload);
-        message.success('创建成功');
+        message.success('活动已创建');
       }
-      setModalOpen(false);
+      setDrawerOpen(false);
+      fetchData();
+    } catch (err) {
+      message.error(err.response?.data?.message || '保存失败');
+    } finally {
+      setDrawerLoading(false);
+    }
+  };
+
+  const openReasonModal = (action, options = {}) => {
+    reasonForm.resetFields();
+    setReasonModal({ open: true, action, ...options });
+  };
+
+  const closeReasonModal = () => {
+    setReasonModal({ open: false, action: '', ids: [], row: null });
+  };
+
+  const handleReasonSubmit = async () => {
+    let values;
+    try {
+      values = await reasonForm.validateFields();
+    } catch (err) {
+      return;
+    }
+    const reason = values.reason?.trim() || '';
+    try {
+      if (reasonModal.action === 'reject') {
+        await campaignApi.reject(reasonModal.row.id, { reason });
+        message.success('已驳回');
+      } else if (reasonModal.action === 'pause') {
+        await campaignApi.pause(reasonModal.row.id, { reason });
+        message.success('已暂停');
+      } else if (reasonModal.action === 'terminate') {
+        await campaignApi.terminate(reasonModal.row.id, { reason });
+        message.success('已终止');
+      } else if (reasonModal.action === 'batch_pause') {
+        const { data: res } = await campaignApi.batchPause(reasonModal.ids, reason);
+        handleBatchResult(res);
+      } else if (reasonModal.action === 'batch_terminate') {
+        const { data: res } = await campaignApi.batchTerminate(reasonModal.ids, reason);
+        handleBatchResult(res);
+      }
+      closeReasonModal();
+      setSelectedRowKeys([]);
+      setSelectedRows([]);
       fetchData();
     } catch (err) {
       message.error(err.response?.data?.message || '操作失败');
     }
   };
 
-  const toggleStatus = async (row) => {
-    const newStatus = row.status === 'active' ? 'paused' : 'active';
-    await campaignApi.update(row.id, { status: newStatus });
-    message.success(newStatus === 'active' ? '已启动' : '已暂停');
-    fetchData();
+  const handleBatchResult = (res) => {
+    const results = res?.results || [];
+    const successCount = results.filter((item) => item.ok).length;
+    const failCount = results.length - successCount;
+    if (failCount > 0) {
+      message.warning(`批量操作完成：成功 ${successCount} 项，失败 ${failCount} 项`);
+    } else {
+      message.success('批量操作成功');
+    }
   };
 
-  const handleDelete = async (id) => {
-    await campaignApi.remove(id);
-    message.success('已删除');
-    fetchData();
+  const handleRowAction = async (action, row) => {
+    try {
+      if (action === 'edit') return openEdit(row);
+      if (action === 'duplicate') return openDuplicate(row);
+      if (action === 'delete') {
+        return Modal.confirm({
+          title: '确认删除该活动？',
+          icon: <ExclamationCircleOutlined />,
+          content: '删除后无法恢复',
+          onOk: async () => {
+            try {
+              await campaignApi.remove(row.id);
+              message.success('已删除');
+              fetchData();
+            } catch (err) {
+              message.error(err.response?.data?.message || '删除失败');
+            }
+          }
+        });
+      }
+      if (action === 'submit_review') {
+        await campaignApi.submitReview(row.id);
+        message.success('已提交审核');
+      } else if (action === 'withdraw_review') {
+        await campaignApi.withdrawReview(row.id);
+        message.success('已撤回审核');
+      } else if (action === 'approve') {
+        await campaignApi.approve(row.id);
+        message.success('已审核通过');
+      } else if (action === 'reject') {
+        openReasonModal('reject', { row });
+        return;
+      } else if (action === 'activate') {
+        await campaignApi.activate(row.id);
+        message.success('已启动');
+      } else if (action === 'pause') {
+        openReasonModal('pause', { row });
+        return;
+      } else if (action === 'complete') {
+        await campaignApi.complete(row.id);
+        message.success('已完成');
+      } else if (action === 'terminate') {
+        openReasonModal('terminate', { row });
+        return;
+      }
+      fetchData();
+    } catch (err) {
+      message.error(err.response?.data?.message || '操作失败');
+    }
+  };
+
+  const handleBatchAction = async (action) => {
+    if (!selectedRowKeys.length) return;
+    try {
+      if (action === 'submit_review') {
+        const { data: res } = await campaignApi.batchSubmitReview(selectedRowKeys);
+        handleBatchResult(res);
+      } else if (action === 'activate') {
+        const { data: res } = await campaignApi.batchActivate(selectedRowKeys);
+        handleBatchResult(res);
+      } else if (action === 'pause') {
+        openReasonModal('batch_pause', { ids: selectedRowKeys });
+        return;
+      } else if (action === 'terminate') {
+        openReasonModal('batch_terminate', { ids: selectedRowKeys });
+        return;
+      }
+      setSelectedRowKeys([]);
+      setSelectedRows([]);
+      fetchData();
+    } catch (err) {
+      message.error(err.response?.data?.message || '批量操作失败');
+    }
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', width: 60 },
-    { title: '活动名称', dataIndex: 'name', ellipsis: true },
-    { title: '状态', dataIndex: 'status', width: 90, render: s => <Tag color={statusColor[s]}>{statusLabel[s]}</Tag> },
-    { title: '平台', dataIndex: 'platform', width: 90, render: p => platformLabel[p] || p },
-    { title: '预算', dataIndex: 'budget', width: 110, render: v => `¥${Number(v).toLocaleString()}` },
-    { title: '消耗', dataIndex: 'spent', width: 110, render: v => `¥${Number(v).toLocaleString()}` },
-    { title: '曝光', dataIndex: 'impressions', width: 100, render: v => Number(v).toLocaleString() },
-    { title: '点击', dataIndex: 'clicks', width: 90, render: v => Number(v).toLocaleString() },
     {
-      title: 'CTR', width: 80,
-      render: (_, r) => r.impressions > 0 ? `${(r.clicks / r.impressions * 100).toFixed(2)}%` : '-'
+      title: '活动名称',
+      dataIndex: 'name',
+      ellipsis: true,
+      width: 180,
+      render: (value) => <span className="campaign-name-cell">{value}</span>
     },
     {
-      title: '操作', width: 160, fixed: 'right',
-      render: (_, row) => (
-        <Space>
-          {canEdit && (
-            <>
-              <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(row)} />
-              {['active', 'paused'].includes(row.status) && (
-                <Button
-                  size="small"
-                  icon={row.status === 'active' ? <PauseOutlined /> : <PlayCircleOutlined />}
-                  onClick={() => toggleStatus(row)}
-                />
-              )}
-            </>
-          )}
-          {canDelete && (
-            <Popconfirm title="确认删除？" onConfirm={() => handleDelete(row.id)}>
-              <Button size="small" danger icon={<DeleteOutlined />} />
-            </Popconfirm>
-          )}
-        </Space>
-      ),
+      title: '状态',
+      dataIndex: 'status',
+      width: 120,
+      render: (value) => <CampaignStatusTag status={value} />
     },
+    {
+      title: '审核',
+      dataIndex: 'requires_review',
+      width: 100,
+      render: (value) =>
+        value ? <Tag color="processing">需要审核</Tag> : <Tag color="default">无需审核</Tag>
+    },
+    { title: '平台', dataIndex: 'platform', width: 90, render: formatPlatform },
+    {
+      title: '总预算',
+      dataIndex: 'total_budget',
+      width: 120,
+      render: (value) => <span className="campaign-budget-cell">{formatCurrency(value)}</span>
+    },
+    {
+      title: '日预算',
+      dataIndex: 'daily_budget',
+      width: 120,
+      render: (value) => <span className="campaign-budget-cell">{formatCurrency(value)}</span>
+    },
+    { title: '消耗', dataIndex: 'spent', width: 110, render: formatCurrency },
+    {
+      title: '剩余预算',
+      width: 120,
+      render: (_, row) => formatCurrency(getRemainingBudget(row))
+    },
+    {
+      title: '预算进度',
+      width: 110,
+      render: (_, row) => `${getBudgetUsageRate(row)}%`
+    },
+    {
+      title: '投放周期',
+      width: 180,
+      render: (_, row) => <span className="campaign-plan-cell">{formatDateRange(row)}</span>
+    },
+    {
+      title: '操作',
+      width: 120,
+      fixed: 'right',
+      render: (_, row) => {
+        const actions = getRowActions(row, user?.role);
+        if (!actions.length) return <Typography.Text type="secondary">-</Typography.Text>;
+        const items = actions.map((action) => ({
+          key: action,
+          label: CAMPAIGN_ACTION_LABEL[action] || action,
+          danger: ['delete', 'terminate'].includes(action)
+        }));
+        return (
+          <Dropdown
+            menu={{
+              items,
+              onClick: ({ key }) => handleRowAction(key, row)
+            }}
+          >
+            <Button size="small">操作</Button>
+          </Dropdown>
+        );
+      }
+    }
   ];
 
   return (
-    <div className="page-shell">
-      <Card
-        className="page-section-card"
-        extra={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建活动</Button> : null}
-      >
+    <div className="page-shell campaigns-shell">
+      <Card className="page-section-card campaign-filter-card">
+        <CampaignFilters
+          value={filters}
+          onChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
+          onSearch={() => {
+            const nextParams = { ...params, page: 1 };
+            clearSelection();
+            setParams(nextParams);
+            fetchData(nextParams, filters);
+          }}
+          onReset={() => {
+            setFilters(defaultFilters);
+            const nextParams = { ...params, page: 1 };
+            clearSelection();
+            setParams(nextParams);
+            fetchData(nextParams, defaultFilters);
+          }}
+          onCreate={openCreate}
+          canEdit={canEdit}
+        />
+      </Card>
+
+      <CampaignBatchBar
+        count={selectedRowKeys.length}
+        loading={loading}
+        onSubmitReview={() => handleBatchAction('submit_review')}
+        onActivate={() => handleBatchAction('activate')}
+        onPause={() => handleBatchAction('pause')}
+        onTerminate={() => handleBatchAction('terminate')}
+      />
+
+      <Card className="page-section-card campaign-table-card">
         <Table
           dataSource={data}
           columns={columns}
           rowKey="id"
           loading={loading}
-          scroll={{ x: 1100 }}
+          scroll={{ x: 1400 }}
+          rowSelection={
+            canEdit
+              ? {
+                  selectedRowKeys,
+                  onChange: (keys, rows) => {
+                    setSelectedRowKeys(keys);
+                    setSelectedRows(rows);
+                  }
+                }
+              : undefined
+          }
           pagination={{
-            total, current: params.page, pageSize: params.pageSize,
-            onChange: (page, pageSize) => { const p = { ...params, page, pageSize }; setParams(p); fetchData(p); },
+            total,
+            current: params.page,
+            pageSize: params.pageSize,
+            onChange: (page, pageSize) => {
+              const nextParams = { ...params, page, pageSize };
+              clearSelection();
+              setParams(nextParams);
+              fetchData(nextParams, filters);
+            }
           }}
         />
       </Card>
 
+      <CampaignFormDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onSubmit={handleDrawerSubmit}
+        loading={drawerLoading}
+        form={form}
+        editing={editing}
+      />
+
       <Modal
-        title={editing ? '编辑广告活动' : '新建广告活动'}
-        open={modalOpen}
-        onOk={handleSubmit}
-        onCancel={() => setModalOpen(false)}
-        width={560}
+        title={reasonTitles[reasonModal.action] || '补充原因'}
+        open={reasonModal.open}
+        onOk={handleReasonSubmit}
+        onCancel={closeReasonModal}
         destroyOnClose
       >
-        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item name="name" label="活动名称" rules={[{ required: true }]}>
-            <Input placeholder="请输入活动名称" />
+        <Form form={reasonForm} layout="vertical">
+          <Form.Item
+            name="reason"
+            label="原因说明"
+            rules={[
+              {
+                required: reasonModal.action === 'reject',
+                message: '请填写原因说明'
+              }
+            ]}
+          >
+            <Input.TextArea rows={3} placeholder="请填写原因（可选）" />
           </Form.Item>
-          <Form.Item name="budget" label="预算 (¥)" rules={[{ required: true }]}>
-            <InputNumber min={0} style={{ width: '100%' }} placeholder="请输入预算金额" />
-          </Form.Item>
-          <Form.Item name="platform" label="投放平台" initialValue="all">
-            <Select options={[
-              { value: 'all', label: '全平台' },
-              { value: 'iOS', label: 'iOS' },
-              { value: 'Android', label: 'Android' },
-              { value: 'Web', label: 'Web' },
-            ]} />
-          </Form.Item>
-          <Form.Item name="dateRange" label="投放时间">
-            <RangePicker style={{ width: '100%' }} />
-          </Form.Item>
-          {editing && (
-            <Form.Item name="status" label="状态">
-              <Select options={[
-                { value: 'draft', label: '草稿' },
-                { value: 'active', label: '投放中' },
-                { value: 'paused', label: '已暂停' },
-                { value: 'completed', label: '已完成' },
-              ]} />
-            </Form.Item>
-          )}
         </Form>
       </Modal>
     </div>
